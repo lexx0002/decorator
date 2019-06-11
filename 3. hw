@@ -1,0 +1,55 @@
+# 1 задача
+
+def get_cook_book():
+  cook_book = {}
+  with open('reciepes.txt', encoding='utf8') as book:
+    for line in book:
+      q_ingr_in_receip = 1
+      bludo = line.strip()
+      kolvoing = book.readline().strip()
+      mnogiting = int(kolvoing)
+      ingr = []
+      while q_ingr_in_receip <= mnogiting:
+        ingr = book.readline().split('|')
+        ingrs = {'ingridient_name': ingr[0].strip(), 'quantity': ingr[1].strip(), 'measure': ingr[2].strip()}
+        if q_ingr_in_receip == 1:
+          ingr_in_receip = [ingrs]
+        else:
+          ingr_in_receip.append(ingrs)
+        q_ingr_in_receip = q_ingr_in_receip + 1
+      receip = {bludo:ingr_in_receip}
+      cook_book.update(receip)
+      book.readline()
+  return(cook_book)
+print(get_cook_book())
+# 2 задача
+
+
+def get_shop_list_by_dishes():
+  cooking = input('Что нужно приготовить и в каком количестве? ')
+  cooking = cooking.replace(' ', '').split(',')
+  person_count = int(cooking.pop(-1))
+  dishes = cooking
+  shop_list = {}
+  cook_book = get_cook_book()
+  for dish in dishes:
+    ingridients = cook_book.get(dish)
+    for product in ingridients:
+      products = dict(product)
+      name_of_product = products.pop('ingridient_name')
+      quantity_product = int(products.pop('quantity'))
+
+      quantity_product *= person_count
+
+      if name_of_product in shop_list.keys():
+
+        quantity_product_dual = shop_list.pop(name_of_product)
+        quantity_product += int(quantity_product_dual['quantity'])
+
+      quantity_product = {'quantity': quantity_product}
+      products.update(quantity_product)
+
+      name_of_product = {name_of_product: products}
+      shop_list.update(name_of_product)
+  print(shop_list)
+get_shop_list_by_dishes()
