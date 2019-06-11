@@ -1,0 +1,36 @@
+from datetime import datetime
+import time
+
+def logger(function_to_log):
+    path = 'log.txt'
+    def write_log(*args, **kwargs):
+        start_func = datetime.now()
+        func_to_log = str(function_to_log).split(' ')[1] #вытащили название функции из функции
+        return_func = function_to_log(*args, **kwargs)
+        end_func = datetime.now()
+        with open(path, 'w', encoding='utf-8') as file:
+            file.write('Время начала функции: ')
+            file.write(str(start_func))
+            file.write('\nВремя окончания функции: ')
+            file.write(str(end_func))
+            file.write('\nНазвание функции: ')
+            file.write(str(func_to_log)) # записали название
+            file.write('\n')
+            if return_func == None:
+                file.write('Функция не возвращает значений')
+            else:
+                file.write(str(return_func))
+            file.write('\nВведены следующие аргументы:\n')
+            for data in args:
+                file.write(str(data))
+                file.write('\n')
+            file.write(str(kwargs))
+    return write_log
+
+@logger
+def some_func(*args, **kwargs):
+    print('sad work')
+    time.sleep(1)
+
+
+some_func(15, 10, 2, p=2)
