@@ -1,84 +1,102 @@
 from datetime import datetime
-import time
 
-def logger(function_to_log):
-    path = 'log.txt'
-    def write_log(*args, **kwargs):
-        start_func = datetime.now()
-        func_to_log = str(function_to_log).split(' ')[1] #вытащили название функции из функции
-        return_func = function_to_log(*args, **kwargs)
-        end_func = datetime.now()
-        with open(path, 'w', encoding='utf-8') as file:
-            file.write('Время начала функции: ')
-            file.write(str(start_func))
-            file.write('\nВремя окончания функции: ')
-            file.write(str(end_func))
-            file.write('\nНазвание функции: ')
-            file.write(str(func_to_log)) # записали название
-            file.write('\n')
-            if return_func == None:
-                file.write('Функция не возвращает значений')
-            else:
-                file.write(str(return_func))
-            file.write('\nВведены следующие аргументы:\n')
-            for data in args:
-                file.write(str(data))
+def where_write(path):
+    
+    def logger(function_to_log):
+        count = 0
+        
+        def write_log(*args, **kwargs):
+            nonlocal count
+            path_2 = path.split('.')
+            true_count = str(count)
+            true_path = path_2[0] + true_count + path_2[1]
+            start_func = datetime.now()
+            func = function_to_log(*args, **kwargs)
+            func_to_log = str(function_to_log).split(' ')[1] #вытащили название функции из функции
+            # return_func = function_to_log(*args, **kwargs)
+            end_func = datetime.now()
+            
+            with open(true_path, 'w', encoding='utf-8') as file:
+                file.write('Время начала функции: ')
+                file.write(str(start_func))
+                file.write('\nВремя окончания функции: ')
+                file.write(str(end_func))
+                file.write('\nНазвание функции: ')
+                file.write(str(func_to_log)) # записали название
                 file.write('\n')
-            file.write(str(kwargs))
-    return write_log
+                
+                if func == None:
+                    file.write('Функция не возвращает значений')
+                else:
+                    file.write(str(func))
+                file.write('\nВведены следующие аргументы:\n')
+                
+                for data in args:
+                    file.write(str(data))
+                    file.write('\n')
+                file.write(str(kwargs))
+                
+            count += 1
+            return func
+        return write_log
+    return logger
 
-# @logger # если я тут ставлю тоже логгер, то он начинает материться
+@where_write('log.txt') # если я тут ставлю тоже логгер, то он начинает материться
 def get_cook_book():
-  cook_book = {}
-  with open('reciepes.txt', encoding='utf8') as book:
-    for line in book:
-      q_ingr_in_receip = 1
-      bludo = line.strip()
-      kolvoing = book.readline().strip()
-      mnogiting = int(kolvoing)
-      ingr = []
-      while q_ingr_in_receip <= mnogiting:
-        ingr = book.readline().split('|')
-        ingrs = {'ingridient_name': ingr[0].strip(), 'quantity': ingr[1].strip(), 'measure': ingr[2].strip()}
-        if q_ingr_in_receip == 1:
-          ingr_in_receip = [ingrs]
-        else:
-          ingr_in_receip.append(ingrs)
-        q_ingr_in_receip = q_ingr_in_receip + 1
-      receip = {bludo:ingr_in_receip}
-      cook_book.update(receip)
-      book.readline()
-  return(cook_book)
+    cook_book = {}
+    
+    with open('reciepes.txt', encoding='utf8') as book:
+        for line in book:
+            q_ingr_in_receip = 1
+            bludo = line.strip()
+            kolvoing = book.readline().strip()
+            mnogiting = int(kolvoing)
+            
+            while q_ingr_in_receip <= mnogiting:
+                ingr = book.readline().split('|')
+                ingrs = {'ingridient_name': ingr[0].strip(), 'quantity': ingr[1].strip(), 'measure': ingr[2].strip()}
+                
+                if q_ingr_in_receip == 1:
+                    ingr_in_receip = [ingrs]
+                else:
+                    ingr_in_receip.append(ingrs)
+                    
+                q_ingr_in_receip = q_ingr_in_receip + 1
+            receip = {bludo:ingr_in_receip}
+            cook_book.update(receip)
+            book.readline()
+            
+    return(cook_book)
 # print(get_cook_book())
 
-@logger
+@where_write('log.txt')
 def get_shop_list_by_dishes():
-  cooking = input('Что нужно приготовить и в каком количестве?')
-  cooking = cooking.replace(' ', '').split(',')
-  person_count = int(cooking.pop(-1))
-  dishes = cooking
-  shop_list = {}
-  cook_book = get_cook_book()
-  for dish in dishes:
-    ingridients = cook_book.get(dish)
-    for product in ingridients:
-      products = dict(product)
-      name_of_product = products.pop('ingridient_name')
-      quantity_product = int(products.pop('quantity'))
+    cooking = input('Что нужно приготовить и в каком количестве?')
+    cooking = cooking.replace(' ', '').split(',')
+    person_count = int(cooking.pop(-1))
+    dishes = cooking
+    shop_list = {}
+    cook_book = get_cook_book()
+    
+    for dish in dishes:
+        ingridients = cook_book.get(dish)
+        
+        for product in ingridients:
+            products = dict(product)
+            name_of_product = products.pop('ingridient_name')
+            quantity_product = int(products.pop('quantity'))
+            quantity_product *= person_count
+            
+            if name_of_product in shop_list.keys():
+                quantity_product_dual = shop_list.pop(name_of_product)
+                quantity_product += int(quantity_product_dual['quantity'])
 
-      quantity_product *= person_count
+            quantity_product = {'quantity': quantity_product}
+            products.update(quantity_product)
 
-      if name_of_product in shop_list.keys():
-
-        quantity_product_dual = shop_list.pop(name_of_product)
-        quantity_product += int(quantity_product_dual['quantity'])
-
-      quantity_product = {'quantity': quantity_product}
-      products.update(quantity_product)
-
-      name_of_product = {name_of_product: products}
-      shop_list.update(name_of_product)
-  print(shop_list)
-  return shop_list
+            name_of_product = {name_of_product: products}
+            shop_list.update(name_of_product)
+    print(shop_list)
+    return shop_list
 
 get_shop_list_by_dishes()
